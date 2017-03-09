@@ -28,7 +28,7 @@ public class DBManager {
     //private static final String DATABASE_PATH = App.getContext().getDatabasePath(DATABASE_NAME).getPath();
 
     private static final String NOTE_TABLE = "Note";
-    private static final String NOTE_SQL = "SELECT * FROM " + NOTE_TABLE;
+    private static final String GET_ALL_NOTE_SQL = "SELECT * FROM " + NOTE_TABLE;
 
     private SQLiteDatabase sqLiteDatabase;
 
@@ -44,27 +44,30 @@ public class DBManager {
                 return;
             } else {
                 File folder = new File(PATH);
-                if (folder.exists()) {
+                
+                if (!folder.exists()) {
                     folder.mkdir();
                 }
+                
                 file.createNewFile();
+                
+                InputStream input = App.getContext().getAssets().open(DATABASE_NAME);
+                OutputStream output = new FileOutputStream(file);
+                byte[] bytes = new byte[1024];
+
+                int length;
+                while ((length = input.read(bytes)) > 0) {
+                    output.write(bytes, 0, length);
+                }
+                output.flush();
+                input.close();
+                output.close();
             }
-
-            InputStream input = App.getContext().getAssets().open(DATABASE_NAME);
-            OutputStream output = new FileOutputStream(file);
-            byte[] bytes = new byte[1024];
-
-            int length;
-            while ((length = input.read(bytes)) > 0) {
-                output.write(bytes, 0, length);
-            }
-            output.flush();
-            input.close();
-            output.close();
-
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     public ArrayList<Note> getNoteList() {
@@ -87,7 +90,7 @@ public class DBManager {
 
     public boolean getNoteListFromDatabase() {
         openDB();
-        Cursor cursor = sqLiteDatabase.rawQuery(NOTE_SQL, null);
+        Cursor cursor = sqLiteDatabase.rawQuery(GET_ALL_NOTE_SQL, null);
         if (cursor == null || cursor.getCount() == 0) {
             return false;
         }
